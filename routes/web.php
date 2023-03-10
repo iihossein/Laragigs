@@ -22,4 +22,7 @@ Route::get('/',[ListingController::class,'index']);
 // Single Listing
 
 Route::get('listings/{listing}',[ListingController::class , 'show']
-)->where('listing','[0-9]+')->name('show.listing');
+)->where('listing','[0-9]+')->name('listing.show');
+
+Route::get('listings/create',[ListingController::class,'create'])->name('listings.create');
+Route::post('listings',[ListingController::class,'store'])->name('listings.store');
