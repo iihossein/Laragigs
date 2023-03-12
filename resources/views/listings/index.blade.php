@@ -12,6 +12,6 @@
         @endunless
     </div>
     <div class="mt-6 p-4">
-        {{ $listings->links() }}
+        {{ $listings->links('vendor.pagination.laragigs') }}
     </div>
 </x-layout>
