@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use auth;
 use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -27,6 +28,7 @@ class ListingController extends Controller
     {
         return view('listings.create');
     }
+    // Store Listing Data
     public function store(Request $request)
     {
         $formFields = $request->validate([
@@ -34,14 +36,70 @@ class ListingController extends Controller
             'company' => ['required', Rule::unique('listings', 'company')],
             'location' => 'required',
             'website' => 'required',
-            'email' => ['required','email'],
+            'email' => ['required', 'email'],
             'tags' => 'required',
-            'description' => 'required'
+            'description' => 'required',
         ]);
+
+        if ($request->hasFile('logo')) {
+            $formFields['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+        $formFields['user_id'] = auth()->id();
+
         Listing::create($formFields);
 
         // Session::flash('message','Listing Created Successfuly');
 
-        return redirect('/')->with('message','Listing Created Successfully!');
+        return redirect('/')->with('message', 'Listing Created Successfully!');
+    }
+
+    // Show Edit Form
+    public function edit(Listing $listing)
+    {
+        return view('listings.edit', ['listing' => $listing]);
+    }
+
+    // Update Listing Data
+    public function update(Request $request, Listing $listing)
+    {
+        // Make Sure Logged In User Is Owner
+        if($listing->user_id != auth()->id()){
+            abort(403,'Unauthorized Action');
+        }
+
+        $formFields = $request->validate([
+            'title' => 'required',
+            'company' => ['required'],
+            'location' => 'required',
+            'website' => 'required',
+            'email' => ['required', 'email'],
+            'tags' => 'required',
+            'description' => 'required',
+        ]);
+
+        if ($request->hasFile('logo')) {
+            $formFields['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        $listing->update($formFields);
+
+        // Session::flash('message','Listing Created Successfuly');
+
+        return back()->with('message', 'Listing Updated Successfully!');
+    }
+
+    // Delete Listing
+    public function destroy(Listing $listing)
+    {
+        // Make Sure Logged In User Is Owner
+        if($listing->user_id != auth()->id()){
+            abort(403,'Unauthorized Action');
+        }
+        $listing->delete();
+        return redirect('/')->with('message', 'Listing deleted successfully');
+    }
+    public function manage()
+    {
+        return view('listings.manage',['listings' => auth()->user()->listings()->get()]);
     }
 }
